@@ -1,0 +1,384 @@
+{% extends "core/base.html" %}
+
+{% block title %}Panel de Distribuidor - Organic Shops{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Resumen y Estadísticas -->
+    <div class="mb-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Total Asignaciones -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Total Asignaciones</p>
+                    <p class="text-2xl font-bold text-green-600">{{ asignaciones_propias.count }}</p>
+                </div>
+                <div class="bg-green-100 rounded-full p-3">
+                    <i class="fas fa-box text-green-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos Distintos -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Productos Distintos</p>
+                    <p class="text-2xl font-bold text-blue-600">{{ productos_distintos }}</p>
+                </div>
+                <div class="bg-blue-100 rounded-full p-3">
+                    <i class="fas fa-cubes text-blue-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Revendedores -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Mis Revendedores</p>
+                    <p class="text-2xl font-bold text-purple-600">{{ asignaciones_creadas.count }}</p>
+                </div>
+                <div class="bg-purple-100 rounded-full p-3">
+                    <i class="fas fa-users text-purple-600 text-xl"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botones de Acción -->
+    <div class="mb-8 flex flex-col sm:flex-row gap-4">
+        <a href="{% url 'core:register' %}" 
+           class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            <i class="fas fa-user-plus mr-2"></i>
+            Crear Usuario
+        </a>
+        <a href="{% url 'core:asignar_distribuidor' %}" 
+           class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+            <i class="fas fa-box mr-2"></i>
+            Asignar Stock a Revendedores
+        </a>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-4 bg-green-700">
+            <h2 class="text-2xl font-bold text-white">Panel de Distribuidor</h2>
+        </div>
+
+        <!-- Tabs -->
+        <div class="border-b border-gray-200">
+            <nav class="flex -mb-px" aria-label="Tabs">
+                <button onclick="showTab('asignaciones_propias')" 
+                        class="tab-button w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm border-green-500 text-green-600">
+                    Mis Asignaciones
+                </button>
+                <button onclick="showTab('asignaciones_creadas')" 
+                        class="tab-button w-1/2 py-4 px-1 text-center border-b-2 font-medium text-sm border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300">
+                    Asignaciones Realizadas
+                </button>
+            </nav>
+        </div>
+
+        <!-- Tab Content: Mis Asignaciones -->
+        <div id="asignaciones_propiasTab">
+            <div class="p-6">
+                <h3 class="text-xl font-semibold text-green-700 mb-4">Mis Asignaciones</h3>
+                
+                <!-- Filtros de búsqueda para Mis Asignaciones -->
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label for="searchFechaAsignaciones" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                        <input type="text" id="searchFechaAsignaciones" placeholder="Buscar por fecha..." 
+                               class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="searchAsignadoPor" class="block text-sm font-medium text-gray-700 mb-1">Asignado por</label>
+                        <input type="text" id="searchAsignadoPor" placeholder="Buscar por asignador..." 
+                               class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="searchProductoAsignaciones" class="block text-sm font-medium text-gray-700 mb-1">Producto</label>
+                        <input type="text" id="searchProductoAsignaciones" placeholder="Buscar por producto..." 
+                               class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="searchEstadoAsignaciones" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <input type="text" id="searchEstadoAsignaciones" placeholder="Buscar por estado..." 
+                               class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Fecha
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Asignado por
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Producto
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Cantidad
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Estado
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for asignacion in asignaciones_propias %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ asignacion.fecha_asignacion|date:"d/m/Y H:i" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {% if asignacion.admin.rol == 'ADMIN' %}
+                                            Administrador: {{ asignacion.admin.username }}
+                                        {% elif asignacion.admin.rol == 'SUPERUSUARIO' %}
+                                            Superusuario: {{ asignacion.admin.username }}
+                                        {% else %}
+                                            {{ asignacion.admin.get_rol_display }}: {{ asignacion.admin.username }}
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-sm text-gray-500">{{ asignacion.admin.email }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ asignacion.producto.nombre }}</div>
+                                    <div class="text-sm text-gray-500">Precio: ${{ asignacion.producto.precio }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ asignacion.cantidad }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if asignacion.estado == 'PAGADO' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                        {{ asignacion.get_estado_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-4 text-center text-sm text-gray-500">
+                                    No hay asignaciones registradas.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Asignaciones Realizadas -->
+        <div id="asignaciones_creadasTab" class="hidden">
+            <div class="p-6">
+                <h3 class="text-xl font-semibold text-green-700 mb-4">Asignaciones Realizadas</h3>
+                
+                <!-- Filtros de búsqueda para Asignaciones Realizadas -->
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                        <label for="searchFechaCreadas" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+                        <input type="text" id="searchFechaCreadas" placeholder="Buscar por fecha..." 
+                               class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="searchRevendedor" class="block text-sm font-medium text-gray-700 mb-1">Revendedor</label>
+                        <input type="text" id="searchRevendedor" placeholder="Buscar por revendedor..." 
+                               class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="searchProductoCreadas" class="block text-sm font-medium text-gray-700 mb-1">Producto</label>
+                        <input type="text" id="searchProductoCreadas" placeholder="Buscar por producto..." 
+                               class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                    <div>
+                        <label for="searchEstadoCreadas" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
+                        <input type="text" id="searchEstadoCreadas" placeholder="Buscar por estado..." 
+                               class="shadow-sm focus:ring-green-500 focus:border-green-500 block w-full sm:text-sm border-gray-300 rounded-md">
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Fecha
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Revendedor
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Producto
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Cantidad
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Estado
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Acciones
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            {% for asignacion in asignaciones_creadas %}
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ asignacion.fecha_asignacion|date:"d/m/Y H:i" }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm font-medium text-gray-900">{{ asignacion.distribuidor.username }}</div>
+                                    <div class="text-sm text-gray-500">{{ asignacion.distribuidor.email }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">{{ asignacion.producto.nombre }}</div>
+                                    <div class="text-sm text-gray-500">Precio: ${{ asignacion.producto.precio }}</div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                    {{ asignacion.cantidad }}
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {% if asignacion.estado == 'PAGADO' %}bg-green-100 text-green-800{% else %}bg-yellow-100 text-yellow-800{% endif %}">
+                                        {{ asignacion.get_estado_display }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <form action="{% url 'core:cambiar_estado' asignacion.id %}" method="post" class="inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="text-sm text-blue-600 hover:text-blue-900">
+                                            Cambiar Estado
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="px-6 py-4 text-center text-sm text-gray-500">
+                                    No hay asignaciones realizadas.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Función para filtrar la tabla de Mis Asignaciones
+    function filterAsignacionesPropias() {
+        const fecha = document.getElementById('searchFechaAsignaciones').value.toLowerCase();
+        const asignador = document.getElementById('searchAsignadoPor').value.toLowerCase();
+        const producto = document.getElementById('searchProductoAsignaciones').value.toLowerCase();
+        const estado = document.getElementById('searchEstadoAsignaciones').value.toLowerCase();
+        
+        const rows = document.querySelectorAll('#asignaciones_propiasTab table tbody tr');
+        
+        rows.forEach(row => {
+            if (row.querySelector('td')) {
+                const fechaCell = row.cells[0].textContent.toLowerCase();
+                const asignadorCell = row.cells[1].textContent.toLowerCase();
+                const productoCell = row.cells[2].textContent.toLowerCase();
+                const estadoCell = row.cells[4].textContent.toLowerCase();
+                
+                const matchFecha = fechaCell.includes(fecha);
+                const matchAsignador = asignadorCell.includes(asignador);
+                const matchProducto = productoCell.includes(producto);
+                const matchEstado = estadoCell.includes(estado);
+                
+                if (matchFecha && matchAsignador && matchProducto && matchEstado) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    // Función para filtrar la tabla de Asignaciones Realizadas
+    function filterAsignacionesCreadas() {
+        const fecha = document.getElementById('searchFechaCreadas').value.toLowerCase();
+        const revendedor = document.getElementById('searchRevendedor').value.toLowerCase();
+        const producto = document.getElementById('searchProductoCreadas').value.toLowerCase();
+        const estado = document.getElementById('searchEstadoCreadas').value.toLowerCase();
+        
+        const rows = document.querySelectorAll('#asignaciones_creadasTab table tbody tr');
+        
+        rows.forEach(row => {
+            if (row.querySelector('td')) {
+                const fechaCell = row.cells[0].textContent.toLowerCase();
+                const revendedorCell = row.cells[1].textContent.toLowerCase();
+                const productoCell = row.cells[2].textContent.toLowerCase();
+                const estadoCell = row.cells[4].textContent.toLowerCase();
+                
+                const matchFecha = fechaCell.includes(fecha);
+                const matchRevendedor = revendedorCell.includes(revendedor);
+                const matchProducto = productoCell.includes(producto);
+                const matchEstado = estadoCell.includes(estado);
+                
+                if (matchFecha && matchRevendedor && matchProducto && matchEstado) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+    }
+
+    // Agregar event listeners a los campos de búsqueda
+    document.addEventListener('DOMContentLoaded', function() {
+        // Event listeners para Mis Asignaciones
+        const searchInputsAsignaciones = [
+            'searchFechaAsignaciones',
+            'searchAsignadoPor',
+            'searchProductoAsignaciones',
+            'searchEstadoAsignaciones'
+        ];
+        
+        searchInputsAsignaciones.forEach(inputId => {
+            document.getElementById(inputId).addEventListener('input', filterAsignacionesPropias);
+        });
+
+        // Event listeners para Asignaciones Realizadas
+        const searchInputsCreadas = [
+            'searchFechaCreadas',
+            'searchRevendedor',
+            'searchProductoCreadas',
+            'searchEstadoCreadas'
+        ];
+        
+        searchInputsCreadas.forEach(inputId => {
+            document.getElementById(inputId).addEventListener('input', filterAsignacionesCreadas);
+        });
+    });
+
+    function showTab(tabName) {
+        // Update tab buttons
+        document.querySelectorAll('.tab-button').forEach(button => {
+            const buttonText = button.textContent.trim().toLowerCase().replace(/\s+/g, '_');
+            if (buttonText === tabName) {
+                button.classList.remove('text-gray-500', 'border-transparent');
+                button.classList.add('border-green-500', 'text-green-600');
+            } else {
+                button.classList.remove('border-green-500', 'text-green-600');
+                button.classList.add('text-gray-500', 'border-transparent');
+            }
+        });
+
+        // Show/hide content
+        document.getElementById('asignaciones_propiasTab').classList.toggle('hidden', tabName !== 'asignaciones_propias');
+        document.getElementById('asignaciones_creadasTab').classList.toggle('hidden', tabName !== 'asignaciones_creadas');
+    }
+</script>
+{% endblock %}
