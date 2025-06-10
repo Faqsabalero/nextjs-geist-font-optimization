@@ -1,0 +1,138 @@
+{% extends "core/base.html" %}
+{% load core_filters %}
+
+{% block title %}Carrito de Compras - Organic Shops{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-4 bg-green-700">
+            <h2 class="text-2xl font-bold text-white">Carrito de Compras</h2>
+        </div>
+
+        <div class="p-6">
+            {% if items %}
+                <!-- Lista de productos -->
+                <div class="space-y-6">
+                    {% for item in items %}
+                    <div class="flex items-center space-x-4 py-4 border-b border-gray-200">
+                        <!-- Imagen del producto -->
+                        <div class="flex-shrink-0 w-24 h-24">
+                            <img src="{{ item.producto.imagen_url }}" 
+                                 alt="{{ item.producto.nombre }}" 
+                                 class="w-full h-full object-cover rounded-md">
+                        </div>
+
+                        <!-- Detalles del producto -->
+                        <div class="flex-grow">
+                            <h3 class="text-lg font-semibold text-gray-900">{{ item.producto.nombre }}</h3>
+                            <p class="text-sm text-gray-500">{{ item.producto.descripcion|truncatechars:100 }}</p>
+                            <div class="mt-2 flex items-center space-x-4">
+                                <span class="text-green-700 font-semibold">${{ item.producto.precio }} ARS</span>
+                                <span class="text-gray-500">Cantidad: {{ item.cantidad }}</span>
+                                <span class="text-green-700 font-semibold">
+                                    Subtotal: ${{ item.producto.precio|multiply:item.cantidad }} ARS
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Botón eliminar -->
+                        <button onclick="eliminarItem({{ item.id }})" 
+                                class="flex-shrink-0 text-red-600 hover:text-red-800 focus:outline-none">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Total y botón de compra -->
+                <div class="mt-8 space-y-4">
+                    <div class="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                        <span class="text-xl font-semibold text-gray-700">Total:</span>
+                        <span class="text-2xl font-bold text-green-700">${{ total }} ARS</span>
+                    </div>
+
+                    <!-- Botón Continuar Comprando -->
+                    <a href="{% url 'core:home' %}#products" 
+                       class="w-full bg-gray-600 text-white px-6 py-4 rounded-md font-semibold text-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2 mb-4">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Continuar Comprando</span>
+                    </a>
+
+                    <a href="{% url 'core:checkout' %}" 
+                       class="w-full bg-green-700 text-white px-6 py-4 rounded-md font-semibold text-lg hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-green-600 focus:ring-offset-2 transition-colors flex items-center justify-center space-x-2">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Proceder al Pago</span>
+                    </a>
+                    <p class="text-sm text-gray-500 text-center">
+                        Pago seguro a través de Mercado Pago
+                    </p>
+                </div>
+            {% else %}
+                <!-- Carrito vacío -->
+                <div class="text-center py-12">
+                    <div class="text-6xl text-gray-300 mb-4">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <h3 class="text-xl font-medium text-gray-900 mb-2">Tu carrito está vacío</h3>
+                    <p class="text-gray-500 mb-6">¡Agrega algunos productos para comenzar!</p>
+                    <a href="{% url 'core:home' %}" 
+                       class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-700 hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600">
+                        Ir a la Tienda
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function eliminarItem(itemId) {
+    if (confirm('¿Estás seguro de que deseas eliminar este producto del carrito?')) {
+        fetch(`/carrito/eliminar/${itemId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error al eliminar el producto del carrito.');
+            }
+        })
+        .catch(error => {
+            alert('Error al eliminar el producto del carrito.');
+        });
+    }
+}
+
+function procesarCompra() {
+    fetch("{% url 'core:procesar_compra_carrito' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: new URLSearchParams({
+            'email': ''
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Compra procesada correctamente. ID de venta: ' + data.ventas.join(', '));
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error al procesar la compra.');
+    });
+}
+</script>
+{% endblock %}
